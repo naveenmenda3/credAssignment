@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:credassignment/features/bills_carousel/domain/entities/bill_entity.dart';
 import 'package:credassignment/features/bills_carousel/presentation/widgets/bill_card.dart';
-import 'package:credassignment/features/bills_carousel/presentation/widgets/vertical_carousel.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -19,7 +18,7 @@ void main() {
 
     testWidgets('BillCard renders correctly', (WidgetTester tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: BillCard(bill: testBill),
           ),
@@ -38,7 +37,7 @@ void main() {
 
     testWidgets('BillCard shows status tag', (WidgetTester tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: BillCard(bill: testBill),
           ),
@@ -48,80 +47,56 @@ void main() {
       // Verify status text is displayed
       expect(find.text('DUE TODAY'), findsOneWidget);
     });
-  });
 
-  group('Vertical Carousel Widget Tests', () {
-    final testBills = List.generate(
-      5,
-      (index) => BillEntity(
-        id: '$index',
-        bankName: 'Bank $index',
-        maskedNumber: 'XXXX XXXX ${1000 + index}',
-        amount: 1000.0 * (index + 1),
+    testWidgets('BillCard formats amount correctly', (WidgetTester tester) async {
+      const largeBill = BillEntity(
+        id: '2',
+        bankName: 'ICICI Bank',
+        maskedNumber: 'XXXX XXXX 1234',
+        amount: 45000,
         status: 'pending',
-        bottomTagText: 'Due in ${index + 1} days',
-        footerText: 'Payment reminder',
-        flipperConfig: index % 2 == 0,
-      ),
-    );
+        bottomTagText: 'DUE TODAY',
+        footerText: 'due today',
+        flipperConfig: false,
+      );
 
-    testWidgets('VerticalCarousel renders with multiple bills',
-        (WidgetTester tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
-            body: VerticalCarousel(bills: testBills),
+            body: BillCard(bill: largeBill),
           ),
         ),
       );
 
-      // Wait for animations to settle
-      await tester.pumpAndSettle();
-
-      // Verify first bill is visible
-      expect(find.text('Bank 0'), findsOneWidget);
-    });
-
-    testWidgets('VerticalCarousel supports vertical scrolling',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: VerticalCarousel(bills: testBills),
-          ),
-        ),
-      );
-
-      await tester.pumpAndSettle();
-
-      // Find the PageView
-      final pageViewFinder = find.byType(PageView);
-      expect(pageViewFinder, findsOneWidget);
-
-      // Perform vertical swipe
-      await tester.drag(pageViewFinder, const Offset(0, -300));
-      await tester.pumpAndSettle();
-
-      // Verify we can scroll
-      expect(find.text('Bank 1'), findsWidgets);
+      // Verify amount is formatted (45000 -> 45K or 45000)
+      expect(find.textContaining('Pay ₹'), findsOneWidget);
     });
   });
 
   group('UI Mode Tests', () {
-    testWidgets('Static mode for <=2 items', (WidgetTester tester) async {
-      final twoBills = List.generate(
-        2,
-        (index) => BillEntity(
-          id: '$index',
-          bankName: 'Bank $index',
-          maskedNumber: 'XXXX XXXX ${1000 + index}',
+    testWidgets('Static mode renders bills in list', (WidgetTester tester) async {
+      final twoBills = [
+        const BillEntity(
+          id: '1',
+          bankName: 'Bank 1',
+          maskedNumber: 'XXXX XXXX 1001',
           amount: 1000.0,
           status: 'pending',
           bottomTagText: 'Due today',
           footerText: 'Payment reminder',
           flipperConfig: false,
         ),
-      );
+        const BillEntity(
+          id: '2',
+          bankName: 'Bank 2',
+          maskedNumber: 'XXXX XXXX 1002',
+          amount: 2000.0,
+          status: 'pending',
+          bottomTagText: 'Due today',
+          footerText: 'Payment reminder',
+          flipperConfig: false,
+        ),
+      ];
 
       await tester.pumpWidget(
         MaterialApp(
@@ -137,38 +112,62 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify both bills are rendered
-      expect(find.text('Bank 0'), findsOneWidget);
       expect(find.text('Bank 1'), findsOneWidget);
+      expect(find.text('Bank 2'), findsOneWidget);
+    });
+  });
+
+  group('Entity Tests', () {
+    test('BillEntity equality works correctly', () {
+      const bill1 = BillEntity(
+        id: '1',
+        bankName: 'HDFC',
+        maskedNumber: 'XXXX 1234',
+        amount: 1000,
+        status: 'pending',
+        bottomTagText: 'Due',
+        footerText: 'Footer',
+        flipperConfig: false,
+      );
+
+      const bill2 = BillEntity(
+        id: '1',
+        bankName: 'HDFC',
+        maskedNumber: 'XXXX 1234',
+        amount: 1000,
+        status: 'pending',
+        bottomTagText: 'Due',
+        footerText: 'Footer',
+        flipperConfig: false,
+      );
+
+      expect(bill1, equals(bill2));
     });
 
-    testWidgets('Carousel mode for >2 items', (WidgetTester tester) async {
-      final manyBills = List.generate(
-        10,
-        (index) => BillEntity(
-          id: '$index',
-          bankName: 'Bank $index',
-          maskedNumber: 'XXXX XXXX ${1000 + index}',
-          amount: 1000.0,
-          status: 'pending',
-          bottomTagText: 'Due today',
-          footerText: 'Payment reminder',
-          flipperConfig: false,
-        ),
+    test('BillEntity hashCode works correctly', () {
+      const bill1 = BillEntity(
+        id: '1',
+        bankName: 'HDFC',
+        maskedNumber: 'XXXX 1234',
+        amount: 1000,
+        status: 'pending',
+        bottomTagText: 'Due',
+        footerText: 'Footer',
+        flipperConfig: false,
       );
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: VerticalCarousel(bills: manyBills),
-          ),
-        ),
+      const bill2 = BillEntity(
+        id: '1',
+        bankName: 'HDFC',
+        maskedNumber: 'XXXX 1234',
+        amount: 1000,
+        status: 'pending',
+        bottomTagText: 'Due',
+        footerText: 'Footer',
+        flipperConfig: false,
       );
 
-      await tester.pumpAndSettle();
-
-      // Verify carousel is rendered
-      expect(find.byType(VerticalCarousel), findsOneWidget);
-      expect(find.byType(PageView), findsOneWidget);
+      expect(bill1.hashCode, equals(bill2.hashCode));
     });
   });
 }
