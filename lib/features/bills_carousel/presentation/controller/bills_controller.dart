@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import '../../domain/entities/bill_entity.dart';
 import '../../domain/repositories/bills_repository.dart';
+import '../../../../core/network/api_endpoints.dart';
 
 /// GetX controller for bills feature
 class BillsController extends GetxController {
@@ -21,16 +22,19 @@ class BillsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    fetchBills();
+    // Single switch point for development/testing
+    // Change this ONE line to test different scenarios
+    fetchBills(BillsMockType.manyItems);
   }
 
   /// Fetch bills from repository
-  Future<void> fetchBills() async {
+  /// This is the ONLY place where we decide which mock API to use
+  Future<void> fetchBills(BillsMockType type) async {
     try {
       isLoading.value = true;
       error.value = '';
 
-      final fetchedBills = await _repository.getBills();
+      final fetchedBills = await _repository.getBills(type);
       bills.value = fetchedBills;
 
       if (fetchedBills.isEmpty) {
@@ -51,11 +55,11 @@ class BillsController extends GetxController {
 
   /// Retry fetching bills
   void retry() {
-    fetchBills();
+    fetchBills(BillsMockType.manyItems);
   }
 
   /// Refresh bills
   Future<void> refresh() async {
-    await fetchBills();
+    await fetchBills(BillsMockType.manyItems);
   }
 }

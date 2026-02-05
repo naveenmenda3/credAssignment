@@ -210,37 +210,51 @@ flutter test
 flutter test integration_test/app_test.dart
 ```
 
-## 📡 API Integration
+### API Architecture
 
-### Mock APIs
+**Clean, Single Switch Point:**
 
-**Small dataset (≤2 items):**
-```
-https://api.mocklets.com/p26/mock1
-```
+The application uses a **deterministic API selection** approach with a single configuration point:
 
-**Large dataset (>2 items):**
-```
-https://api.mocklets.com/p26/mock2
-```
-
-### API Response Handling
-
-The app handles multiple response structures:
 ```dart
-// Array response
-[{...}, {...}]
+// core/network/api_endpoints.dart
+enum BillsMockType { twoItems, manyItems }
 
-// Object with 'data' key
-{"data": [{...}, {...}]}
-
-// Object with 'bills' key
-{"bills": [{...}, {...}]}
+class ApiEndpoints {
+  static const mockTwoItems = 'https://api.mocklets.com/p26/mock1';
+  static const mockManyItems = 'https://api.mocklets.com/p26/mock2';
+}
 ```
 
-### Switching APIs
+**Single Decision Point:**
 
-The `BillsRemoteDataSource` automatically tries the large dataset first, then falls back to the small dataset if needed.
+API selection happens **only** in the controller's `onInit()`:
+
+```dart
+@override
+void onInit() {
+  super.onInit();
+  // Single switch point for development/testing
+  fetchBills(BillsMockType.manyItems);
+}
+```
+
+**Why This Approach?**
+
+- ✅ **Deterministic**: Network layer is predictable
+- ✅ **Testable**: Easy to test both scenarios
+- ✅ **Clean**: No conditional logic in UI or data layers
+- ✅ **Professional**: Single responsibility principle
+
+### Assumptions
+
+Different mock endpoints were provided to validate UI behavior for varying item counts during development and testing. **At runtime, a production application would consume a single API response and adapt the UI based on the data size returned.**
+
+The two mock APIs represent **test fixtures**, not runtime logic. The UI automatically adapts based on the data:
+- **≤2 items** → Static list rendering
+- **>2 items** → Carousel with stacking effect
+
+This keeps the networking layer deterministic and predictable, following clean architecture principles.
 
 ## 🎨 UI Implementation Details
 
