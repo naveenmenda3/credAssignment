@@ -4,7 +4,7 @@ import '../controller/bills_controller.dart';
 import '../widgets/vertical_carousel.dart';
 import '../widgets/bill_card.dart';
 
-/// Entry page for bills feature
+/// CRED-style bills page
 class BillsPage extends StatelessWidget {
   const BillsPage({super.key});
 
@@ -13,127 +13,189 @@ class BillsPage extends StatelessWidget {
     final controller = Get.find<BillsController>();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
-      appBar: AppBar(
-        title: const Text(
-          'My Bills',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: const Color(0xFF1976D2),
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white),
-            onPressed: () => controller.refresh(),
-          ),
-        ],
-      ),
-      body: Obx(() {
-        // Loading state
-        if (controller.isLoading.value) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        }
+      backgroundColor: const Color(0xFFF8F8F8),
+      body: SafeArea(
+        child: Obx(() {
+          // Loading state
+          if (controller.isLoading.value) {
+            return const Center(
+              child: CircularProgressIndicator(
+                color: Color(0xFF1A1A1A),
+              ),
+            );
+          }
 
-        // Error state
-        if (controller.error.value.isNotEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.error_outline,
-                  size: 64,
-                  color: Colors.red,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  controller.error.value,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.red,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton.icon(
-                  onPressed: () => controller.retry(),
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Retry'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1976D2),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
+          // Error state
+          if (controller.error.value.isNotEmpty) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: Color(0xFFE53935),
                     ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
-
-        // Empty state
-        if (controller.bills.isEmpty) {
-          return const Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.receipt_long_outlined,
-                  size: 64,
-                  color: Colors.grey,
-                ),
-                SizedBox(height: 16),
-                Text(
-                  'No bills found',
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.grey,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
-
-        // Carousel mode (>2 items)
-        if (controller.isCarouselMode) {
-          return Column(
-            children: [
-              const SizedBox(height: 24),
-              const Text(
-                'Swipe to view all bills',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey,
+                    const SizedBox(height: 16),
+                    Text(
+                      'Failed to load bills',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1A1A1A),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      controller.error.value,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: () => controller.retry(),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1A1A1A),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 32,
+                          vertical: 14,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        'Retry',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 16),
+            );
+          }
+
+          // Empty state
+          if (controller.bills.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.receipt_long_outlined,
+                    size: 64,
+                    color: Colors.grey[400],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No bills found',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          // Main content
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'UPCOMING BILLS (${controller.bills.length})',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey[500],
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        // View all action
+                      },
+                      child: Row(
+                        children: [
+                          Text(
+                            'view all',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[700],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Icon(
+                            Icons.chevron_right,
+                            size: 20,
+                            color: Colors.grey[700],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Bills content
               Expanded(
-                child: VerticalCarousel(bills: controller.bills),
+                child: _buildBillsContent(controller),
               ),
             ],
           );
-        }
+        }),
+      ),
+    );
+  }
 
-        // Static list mode (<=2 items)
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: controller.bills.length,
-          itemBuilder: (context, index) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: BillCard(bill: controller.bills[index]),
-            );
-          },
-        );
-      }),
+  Widget _buildBillsContent(BillsController controller) {
+    // Static list mode (<=2 items)
+    if (controller.isStaticMode) {
+      return ListView.builder(
+        padding: const EdgeInsets.only(top: 8, bottom: 24),
+        physics: const BouncingScrollPhysics(),
+        itemCount: controller.bills.length,
+        itemBuilder: (context, index) {
+          return BillCard(
+            bill: controller.bills[index],
+            isCarouselMode: false,
+          );
+        },
+      );
+    }
+
+    // Carousel mode (>2 items)
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      child: Column(
+        children: [
+          const SizedBox(height: 8),
+          VerticalCarousel(bills: controller.bills),
+          const SizedBox(height: 24),
+        ],
+      ),
     );
   }
 }
