@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 
 void main() {
   group('Bill Card Widget Tests', () {
-    final testBill = BillEntity(
+    const testBill = BillEntity(
       id: '1',
       bankName: 'HDFC Bank',
       maskedNumber: 'XXXX XXXX 5948',

@@ -71,8 +71,11 @@ void main() {
 
         // Verify frame drop rate is acceptable (<10%)
         final dropRate = frameTracker.dropRate;
+        // ignore: avoid_print
         print('Frame drop rate: ${dropRate.toStringAsFixed(2)}%');
+        // ignore: avoid_print
         print('Total frames: ${frameTracker.totalFrames}');
+        // ignore: avoid_print
         print('Dropped frames: ${frameTracker.droppedFrames}');
 
         expect(dropRate, lessThan(10.0),

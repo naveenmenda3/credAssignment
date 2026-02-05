@@ -22,7 +22,7 @@ class BillCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withAlpha(20),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -93,7 +93,7 @@ class BillCard extends StatelessWidget {
       width: 48,
       height: 48,
       decoration: BoxDecoration(
-        color: _getBrandColor().withOpacity(0.1),
+        color: _getBrandColor().withAlpha(25),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Center(
