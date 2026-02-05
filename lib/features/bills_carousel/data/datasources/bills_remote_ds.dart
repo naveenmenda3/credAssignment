@@ -23,17 +23,35 @@ class BillsRemoteDataSource {
       if (response.statusCode == 200) {
         final data = response.data;
 
-        // Handle the API response structure
+        // Handle the CRED API response structure
         List<dynamic> billsJson;
         
         if (data is List) {
+          // Direct array response
           billsJson = data;
-        } else if (data is Map && data.containsKey('data')) {
-          billsJson = data['data'] as List<dynamic>;
-        } else if (data is Map && data.containsKey('bills')) {
-          billsJson = data['bills'] as List<dynamic>;
+        } else if (data is Map) {
+          // Check for nested structure: template_properties.child_list
+          final templateProps = data['template_properties'] as Map<String, dynamic>?;
+          if (templateProps != null && templateProps.containsKey('child_list')) {
+            billsJson = templateProps['child_list'] as List<dynamic>;
+          } else if (data.containsKey('child_list')) {
+            // Direct child_list
+            billsJson = data['child_list'] as List<dynamic>;
+          } else if (data.containsKey('data')) {
+            // Fallback to 'data' key
+            billsJson = data['data'] as List<dynamic>;
+          } else if (data.containsKey('bills')) {
+            // Fallback to 'bills' key
+            billsJson = data['bills'] as List<dynamic>;
+          } else {
+            throw Exception('Could not find bills array in API response');
+          }
         } else {
           throw Exception('Unexpected API response structure');
+        }
+
+        if (billsJson.isEmpty) {
+          throw Exception('No bills found in API response');
         }
 
         return billsJson
