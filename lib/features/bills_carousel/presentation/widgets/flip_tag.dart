@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
-/// Animated flip tag widget with 3D rotation
+/// CRED-style animated flip tag widget
 class FlipTag extends StatefulWidget {
   final String bottomTagText;
   final String footerText;
@@ -30,7 +30,7 @@ class _FlipTagState extends State<FlipTag> {
   }
 
   void _startFlipping() {
-    Future.delayed(const Duration(seconds: 2), () {
+    Future.delayed(const Duration(seconds: 3), () {
       if (mounted && widget.flipperConfig) {
         setState(() {
           _showFront = !_showFront;
@@ -43,40 +43,35 @@ class _FlipTagState extends State<FlipTag> {
   @override
   Widget build(BuildContext context) {
     if (!widget.flipperConfig) {
-      // Static display of footer text
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.2),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Text(
-          widget.footerText,
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.9),
-            fontSize: 14,
-          ),
-        ),
-      );
+      // Static display - show status tag
+      return _buildStatusTag(widget.footerText, _getStatusColor(widget.footerText));
     }
 
-    // Animated flip between bottomTagText and footerText
+    // Animated vertical flip between bottomTagText and footerText
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 400),
       transitionBuilder: (Widget child, Animation<double> animation) {
-        final rotateAnim = Tween(begin: math.pi, end: 0.0).animate(animation);
+        // Vertical flip animation
+        final rotateAnim = Tween(begin: math.pi / 2, end: 0.0).animate(
+          CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeInOut,
+          ),
+        );
+        
         return AnimatedBuilder(
           animation: rotateAnim,
           child: child,
           builder: (context, child) {
             final isUnder = (ValueKey(_showFront) != child!.key);
-            var tilt = ((animation.value - 0.5).abs() - 0.5) * 0.003;
-            tilt *= isUnder ? -1.0 : 1.0;
             final value = isUnder
                 ? math.min(rotateAnim.value, math.pi / 2)
                 : rotateAnim.value;
+            
             return Transform(
-              transform: Matrix4.rotationY(value)..setEntry(3, 0, tilt),
+              transform: Matrix4.identity()
+                ..setEntry(3, 2, 0.001) // perspective
+                ..rotateX(value),
               alignment: Alignment.center,
               child: child,
             );
@@ -84,32 +79,44 @@ class _FlipTagState extends State<FlipTag> {
         );
       },
       child: _showFront
-          ? _buildTagContainer(
+          ? _buildStatusTag(
               widget.bottomTagText,
+              _getStatusColor(widget.bottomTagText),
               key: const ValueKey(true),
             )
-          : _buildTagContainer(
+          : _buildStatusTag(
               widget.footerText,
+              _getStatusColor(widget.footerText),
               key: const ValueKey(false),
             ),
     );
   }
 
-  Widget _buildTagContainer(String text, {required Key key}) {
+  Widget _buildStatusTag(String text, Color color, {Key? key}) {
     return Container(
       key: key,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(8),
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 4),
       child: Text(
-        text,
+        text.toUpperCase(),
         style: TextStyle(
-          color: Colors.white.withOpacity(0.9),
-          fontSize: 14,
+          color: color,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.5,
         ),
       ),
     );
+  }
+
+  Color _getStatusColor(String text) {
+    final lowerText = text.toLowerCase();
+    if (lowerText.contains('overdue')) {
+      return const Color(0xFFE53935); // Red
+    } else if (lowerText.contains('due today') || lowerText.contains('today')) {
+      return const Color(0xFFFB8C00); // Orange
+    } else if (lowerText.contains('paid')) {
+      return const Color(0xFF43A047); // Green
+    }
+    return const Color(0xFFFB8C00); // Default orange
   }
 }
