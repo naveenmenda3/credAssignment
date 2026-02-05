@@ -11,8 +11,8 @@ class BillsRepositoryImpl implements BillsRepository {
   @override
   Future<List<BillEntity>> getBills() async {
     try {
-      // Use mock data for now - switch to fetchBills() when API is ready
-      final billModels = await _remoteDataSource.fetchMockBills();
+      // Use real API data
+      final billModels = await _remoteDataSource.fetchBillsAuto();
 
       // Convert models to entities
       return billModels.map((model) => model.toEntity()).toList();
